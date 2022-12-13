@@ -48,7 +48,7 @@ if __name__ == "__main__":
                         help="Learning rate. (default:0.0002)")
     parser.add_argument("--n_critic", type=int, default=5,
                         help="Number of training steps for discriminator per iter. (Default: 5).")
-    parser.add_argument("--image-size", type=int, default=64,
+    parser.add_argument("--image-size", type=int, default=128,
                         help="The height / width of the input image to network. (default: 64).")
     parser.add_argument("--classes", default="church_outdoor",
                         help="comma separated list of classes for the lsun data set. (default: ``church_outdoor``).")

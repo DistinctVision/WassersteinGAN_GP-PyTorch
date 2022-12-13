@@ -33,6 +33,8 @@ from wgangp_pytorch.utils import select_device
 from wgangp_pytorch.utils import weights_init
 from dataset import FmaDatasetReader, MlAudioDataset, MlAudioBatchCollector, DataNormalizer, save_spectogram_as_fig
 
+from audio import istft, wavfile, get_stft_window_func_by_name
+
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
@@ -105,13 +107,15 @@ class Trainer(object):
 
         fixed_noise = torch.randn(args.batch_size, 100, 1, 1, device=self.device)
 
+        stft_window_func = get_stft_window_func_by_name(self.config['stft']['window_func'])
+
         for epoch in range(self.start_epoch, self.epochs):
-            progress_bar = tqdm(enumerate(self.ml_audio_batch_collector.iter_level(2)),
+            progress_bar = tqdm(enumerate(self.ml_audio_batch_collector.iter_level(0)),
                                 total=len(self.ml_audio_batch_collector))
             for i, data in progress_bar:
 
                 real_images_raw = data[0].astype(np.float32)
-                real_images_raw = real_images_raw[:, :, :64, :64]
+                real_images_raw = real_images_raw[:, :, :128, :128]
                 real_images_raw = self.data_normalizer.normalize(real_images_raw)
                 real_images = torch.from_numpy(real_images_raw).to(self.device)
 
@@ -181,7 +185,20 @@ class Trainer(object):
                     for f_i, fake_image in enumerate(fake):
                         save_spectogram_as_fig(fake_image, os.path.join("output",
                                                                         f"fake_samples_{iters}_{f_i}.png"), 2 ** 3)
+                        self.data_normalizer.unnormalize(fake_image)
 
+                        sample_filepath = os.path.join("output", f'fake_sample_{iters}_{f_i}.wav')
+                        spectogram = fake_image
+                        left_channel = spectogram[0, :, :] * np.cos(spectogram[1, :, :]) + \
+                                       1j * (spectogram[0, :, :] * np.sin(spectogram[1, :, :]))
+                        stft_array = np.stack([left_channel, left_channel], axis=0)
+                        signal = istft(stft_array,
+                                       None,
+                                       float(self.config['stft']['overlap_fac']),
+                                       stft_window_func)
+                        signal = signal.astype(np.int16)
+                        samplerate = int(self.config['stft']['samplerate'])
+                        wavfile.write(sample_filepath, samplerate, signal)
                     # do checkpointing
                     torch.save(self.generator.state_dict(), f"weights/{args.arch}_G_iter_{iters}.pth")
                     torch.save(self.discriminator.state_dict(), f"weights/{args.arch}_D_iter_{iters}.pth")
