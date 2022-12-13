@@ -1,0 +1,80 @@
+datasets:
+  fma:
+    data_path: ~/datasets/fma_small
+    meta_path: ~/datasets/fma_metadata
+    genres: [pop, electronic, rock]
+
+  ranges:
+    amplitude: [0.0, 4895289.007645269]
+    phase: [-3.141592653589793, 3.141592653589793]
+
+stft:
+  samplerate: 8000
+  frame_size: 256
+  overlap_fac: 0.33
+  window_func: hanning
+
+gansynth:
+  in_shape: [128, 129]
+  discriminator:
+    blocks:
+      - in_channels: 8
+        out_channels: 16
+        num_blocks: 2
+        stride: 1
+      - in_channels: 16
+        out_channels: 32
+        num_blocks: 2
+        stride: 2
+      - in_channels: 32
+        out_channels: 64
+        num_blocks: 2
+        stride: 2
+      - in_channels: 64
+        out_channels: 128
+        num_blocks: 2
+        stride: 2
+  generator:
+    blocks:
+      - in_channels: 128
+        out_channels: 64
+        num_blocks: 2
+        stride: 2
+      - in_channels: 64
+        out_channels: 32
+        num_blocks: 2
+        stride: 2
+      - in_channels: 32
+        out_channels: 16
+        num_blocks: 2
+        stride: 2
+      - in_channels: 16
+        out_channels: 8
+        num_blocks: 2
+        stride: 1
+  
+training:
+  device: "cuda"
+  batch_size: 64
+  save_step: 10
+  save_discriminator: false
+  audio_samples:
+    start_level: 2
+    test_size: 10
+  gradient_penalty_lambda: 0.001
+  _iterations:
+    - count: 1000
+    - translation_count: 500
+      count: 500
+    - translation_count: 250
+      count: 250
+    - translation_count: 200
+      count: 200
+  iterations:
+    - count: 2
+    - translation_count: 2
+      count: 2
+    - translation_count: 2
+      count: 2
+    - translation_count: 2
+      count: 2

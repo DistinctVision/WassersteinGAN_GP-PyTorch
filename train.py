@@ -29,10 +29,6 @@ logging.basicConfig(format="[ %(levelname)s ] %(message)s", level=logging.DEBUG)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="An implementation of WassersteinGAN-GP algorithm using PyTorch framework.")
-    parser.add_argument("data", metavar="DIR",
-                        help="path to dataset")
-    parser.add_argument("--dataset", type=str, required=True,
-                        help="| lsun |.")
     parser.add_argument("-a", "--arch", metavar="ARCH", default="lsun",
                         choices=model_names,
                         help="model architecture: " +
