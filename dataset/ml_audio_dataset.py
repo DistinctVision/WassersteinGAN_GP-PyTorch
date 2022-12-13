@@ -15,6 +15,7 @@ from audio import read_audio_file, stft, get_stft_window_func_by_name
 def save_spectogram_as_fig(spectogram: np.ndarray,
                            output_path: Union[Path, str],
                            scale: float = 1):
+    output_path = Path(output_path)
     spectogram = ((spectogram + 1) * 0.5 * 255).astype(np.uint8)
     zeros = np.zeros((spectogram.shape[2], spectogram.shape[1]))
     if spectogram.shape[0] > 2:

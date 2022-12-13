@@ -170,16 +170,17 @@ class Trainer(object):
 
                 iters = i + epoch * len(self.ml_audio_batch_collector) + 1
                 # The image is saved every 1000 epoch.
-                if iters % 100 == 0:
+                if iters % 1000 == 0:
                     for r_i, real_image_raw in enumerate(real_images_raw):
                         save_spectogram_as_fig(real_image_raw, os.path.join("output",
                                                                             f"real_samples_{iters}_{r_i}.png"), 2 ** 3)
                     fake = self.generator(fixed_noise)
                     fake[fake < -1] = -1
                     fake[fake > 1] = 1
+                    fake = fake.detach().cpu().numpy()
                     for f_i, fake_image in enumerate(fake):
                         save_spectogram_as_fig(fake_image, os.path.join("output",
-                                                                        f"real_samples_{iters}_{f_i}.png"), 2 ** 3)
+                                                                        f"fake_samples_{iters}_{f_i}.png"), 2 ** 3)
 
                     # do checkpointing
                     torch.save(self.generator.state_dict(), f"weights/{args.arch}_G_iter_{iters}.pth")
