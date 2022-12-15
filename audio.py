@@ -88,7 +88,7 @@ def stft(signal: np.ndarray,
 
 
 def istft(spectrums: np.ndarray,
-          source_slice: Optional[Tuple[int, int]],
+          source_slice: Optional[Tuple[int, int]] = None,
           overlap_fac: float = 0.33,
           window_func: Optional[Callable[[int], np.ndarray]] = np.hanning
           ) -> np.ndarray:

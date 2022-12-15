@@ -10,12 +10,15 @@ import cv2
 
 from dataset.fma_dataset_reader import FmaDatasetReader
 from audio import read_audio_file, stft, get_stft_window_func_by_name
+from phase_ops import instantaneous_frequency
 
 
 def save_spectogram_as_fig(spectogram: np.ndarray,
                            output_path: Union[Path, str],
                            scale: float = 1):
     output_path = Path(output_path)
+    spectogram[spectogram < -1] = -1
+    spectogram[spectogram > 1] = 1
     spectogram = ((spectogram + 1) * 0.5 * 255).astype(np.uint8)
     zeros = np.zeros((spectogram.shape[2], spectogram.shape[1]))
     if spectogram.shape[0] > 2:
@@ -64,6 +67,7 @@ class MlAudioDataset:
         self.genre_vector_size = len(self.reader.genres)
         self.stft_window_func = get_stft_window_func_by_name(self.stft_config['window_func'])
         self.samplerate = int(self.stft_config['samplerate'])
+        self.use_instantaneous_frequency = bool(self.stft_config['use_instantaneous_frequency'])
 
     def get_samplerate(self, level_index: int = 0) -> int:
         return int(self.samplerate // (2 ** level_index))
@@ -112,7 +116,7 @@ class MlAudioDataset:
 
         if spectogram.shape[1] > level_shape[0]:
             rand_offset = random.randint(0, spectogram.shape[1] - level_shape[0])
-            spectogram = spectogram[:, rand_offset:rand_offset+level_shape[0], :]
+            spectogram = spectogram[:, rand_offset:rand_offset + level_shape[0], :]
         elif spectogram.shape[1] < level_shape[0]:
             extra_part = np.zeros((spectogram.shape[0],
                                    level_shape[0] - spectogram.shape[1],
@@ -122,6 +126,8 @@ class MlAudioDataset:
 
         if spectogram.shape[2] != level_shape[1]:
             spectogram = np.stack([resize(s, level_shape) for s in spectogram], axis=0)
+        if self.use_instantaneous_frequency:
+            spectogram = instantaneous_frequency(spectogram)
 
         return spectogram, genre_vector
 

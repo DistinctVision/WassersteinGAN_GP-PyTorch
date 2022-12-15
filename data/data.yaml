@@ -5,17 +5,20 @@ datasets:
     genres: [pop, electronic, rock]
 
   ranges:
-    amplitude: [0.0, 4895289.007645269]
-    phase: [-3.141592653589793, 3.141592653589793]
+    amplitude: [0, 4895289.007645269]
+    phase: [-1, 1]
+    _phase: [-3.141592654, 3.141592654]
+
 
 stft:
   samplerate: 8000
-  frame_size: 256
+  frame_size: 128
   overlap_fac: 0.33
   window_func: hanning
+  use_instantaneous_frequency: True
 
 gansynth:
-  in_shape: [128, 129]
+  in_shape: [64, 65]
   discriminator:
     blocks:
       - in_channels: 8
@@ -61,8 +64,8 @@ training:
   audio_samples:
     start_level: 2
     test_size: 10
-  gradient_penalty_lambda: 0.001
-  _iterations:
+  gradient_penalty_lambda: 1.0
+  iterations:
     - count: 1000
     - translation_count: 500
       count: 500
@@ -70,7 +73,7 @@ training:
       count: 250
     - translation_count: 200
       count: 200
-  iterations:
+  _iterations:
     - count: 2
     - translation_count: 2
       count: 2

@@ -14,10 +14,27 @@ class DataNormalizer:
         min_amplitude, max_amplitude = sys.float_info.max, -sys.float_info.max
         min_phase, max_phase = sys.float_info.max, -sys.float_info.max
         for spectogram, genre_vector in tqdm(dataset, 'Computing'):
-            s_a_min = min(spectogram[0, :, :].min(), spectogram[2, :, :].min())
-            s_a_max = max(spectogram[0, :, :].max(), spectogram[2, :, :].max())
-            s_p_min = min(spectogram[1, :, :].min(), spectogram[3, :, :].min())
-            s_p_max = max(spectogram[1, :, :].max(), spectogram[3, :, :].max())
+            if len(spectogram.shape) == 3:
+                s_a_min = spectogram[0, :, :].min()
+                s_a_max = spectogram[0, :, :].max()
+                s_p_min = spectogram[1, :, :].min()
+                s_p_max = spectogram[1, :, :].max()
+                if spectogram.shape[0] > 2:
+                    s_a_min = min(spectogram[0, :, :].min(), spectogram[2, :, :].min())
+                    s_a_max = max(spectogram[0, :, :].max(), spectogram[2, :, :].max())
+                    s_p_min = min(spectogram[1, :, :].min(), spectogram[3, :, :].min())
+                    s_p_max = max(spectogram[1, :, :].max(), spectogram[3, :, :].max())
+            else:
+                s_a_min = spectogram[:, 0, :, :].min()
+                s_a_max = spectogram[:, 0, :, :].max()
+                s_p_min = spectogram[:, 1, :, :].min()
+                s_p_max = spectogram[:, 1, :, :].max()
+                if spectogram.shape[1] > 2:
+                    s_a_min = min(spectogram[:, 0, :, :].min(), spectogram[:, 2, :, :].min())
+                    s_a_max = max(spectogram[:, 0, :, :].max(), spectogram[:, 2, :, :].max())
+                    s_p_min = min(spectogram[:, 1, :, :].min(), spectogram[:, 3, :, :].min())
+                    s_p_max = max(spectogram[:, 1, :, :].max(), spectogram[:, 3, :, :].max())
+
             if s_a_min < min_amplitude:
                 min_amplitude = s_a_min
             if s_a_max > max_amplitude:
@@ -92,8 +109,11 @@ if __name__ == '__main__':
     from pathlib import Path
     import yaml
     from dataset import FmaDatasetReader, MlAudioBatchCollector
+    import os
 
-    config = yaml.safe_load(open(Path('data') / 'data.yaml', 'r'))
+    SCRIPT_PATH = Path(os.path.abspath(__file__)).parent
+
+    config = yaml.safe_load(open(SCRIPT_PATH / '..' / 'data' / 'data.yaml', 'r'))
     reader = FmaDatasetReader(config)
     ml_audio_dataset = MlAudioDataset(reader, config)
     batch_collector = MlAudioBatchCollector(ml_audio_dataset, 16)
